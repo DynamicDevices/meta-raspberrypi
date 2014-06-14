@@ -1,0 +1,201 @@
+
+diff -ur weston-1.5.0.org/Makefile.am weston-1.5.0/Makefile.am
+--- weston-1.5.0.org/Makefile.am	2014-05-20 00:00:51.000000000 +0100
++++ weston-1.5.0/Makefile.am	2014-06-13 17:22:23.927397788 +0100
+@@ -25,7 +25,6 @@
+ 	-I$(top_srcdir)/src			\
+ 	-I$(top_builddir)/src			\
+ 	-I$(top_builddir)/clients		\
+-	-I$(top_builddir)/tests			\
+ 	-I$(top_srcdir)/shared			\
+ 	-I$(top_builddir)/protocol		\
+ 	-DDATADIR='"$(datadir)"'		\
+@@ -364,7 +363,6 @@
+ demo_clients =					\
+ 	weston-flower				\
+ 	weston-image				\
+-	weston-cliptest				\
+ 	weston-dnd				\
+ 	weston-smoke				\
+ 	weston-resizor				\
+@@ -462,10 +460,6 @@
+ weston_image_LDADD = libtoytoolkit.la
+ weston_image_CFLAGS = $(AM_CFLAGS) $(CLIENT_CFLAGS)
+ 
+-weston_cliptest_SOURCES = clients/cliptest.c
+-weston_cliptest_CFLAGS = $(AM_CFLAGS) $(CLIENT_CFLAGS)
+-weston_cliptest_LDADD = libtoytoolkit.la
+-
+ weston_dnd_SOURCES = clients/dnd.c
+ weston_dnd_LDADD = libtoytoolkit.la
+ weston_dnd_CFLAGS = $(AM_CFLAGS) $(CLIENT_CFLAGS)
+@@ -797,161 +791,12 @@
+ 	shared/cairo-util.h
+ 
+ 
+-#
+-# tests subdirectory
+-#
+-
+-TESTS = $(shared_tests) $(module_tests) $(weston_tests)
+-
+-shared_tests =					\
+-	config-parser.test			\
+-	vertex-clip.test
+-
+-module_tests =					\
+-	surface-test.la				\
+-	surface-global-test.la
+-
+-weston_tests =					\
+-	bad_buffer.weston			\
+-	keyboard.weston				\
+-	event.weston				\
+-	button.weston				\
+-	text.weston				\
+-	subsurface.weston
+-
+-
+-AM_TESTS_ENVIRONMENT = \
+-	abs_builddir='$(abs_builddir)'; export abs_builddir;
+-
+-TEST_EXTENSIONS = .la .weston
+-LA_LOG_COMPILER = $(srcdir)/tests/weston-tests-env
+-WESTON_LOG_COMPILER = $(srcdir)/tests/weston-tests-env
+-
+ clean-local:
+ 	-rm -rf logs
+ 
+ # To remove when automake 1.11 support is dropped
+ export abs_builddir
+ 
+-noinst_LTLIBRARIES +=			\
+-	weston-test.la			\
+-	$(module_tests)			\
+-	libtest-runner.la		\
+-	libtest-client.la
+-
+-noinst_PROGRAMS +=			\
+-	$(setbacklight)			\
+-	$(shared_tests)			\
+-	$(weston_tests)			\
+-	matrix-test
+-
+-test_module_ldflags = \
+-	-module -avoid-version -rpath $(libdir) $(COMPOSITOR_LIBS)
+-
+-surface_global_test_la_SOURCES = tests/surface-global-test.c
+-surface_global_test_la_LDFLAGS = $(test_module_ldflags)
+-surface_global_test_la_CFLAGS = $(GCC_CFLAGS) $(COMPOSITOR_CFLAGS)
+-
+-surface_test_la_SOURCES = tests/surface-test.c
+-surface_test_la_LDFLAGS = $(test_module_ldflags)
+-surface_test_la_CFLAGS = $(GCC_CFLAGS) $(COMPOSITOR_CFLAGS)
+-
+-weston_test_la_LIBADD = $(COMPOSITOR_LIBS) libshared.la
+-weston_test_la_LDFLAGS = $(test_module_ldflags)
+-weston_test_la_CFLAGS = $(GCC_CFLAGS) $(COMPOSITOR_CFLAGS)
+-weston_test_la_SOURCES = tests/weston-test.c
+-nodist_weston_test_la_SOURCES =			\
+-	protocol/wayland-test-protocol.c	\
+-	protocol/wayland-test-server-protocol.h
+-
+-if ENABLE_EGL
+-weston_test_la_CFLAGS += $(EGL_TESTS_CFLAGS)
+-weston_test_la_LDFLAGS += $(EGL_TESTS_LIBS)
+-endif
+-
+-libtest_runner_la_SOURCES =			\
+-	tests/weston-test-runner.c		\
+-	tests/weston-test-runner.h
+-libtest_runner_la_CFLAGS = $(GCC_CFLAGS) $(COMPOSITOR_CFLAGS)
+-
+-config_parser_test_SOURCES = tests/config-parser-test.c
+-config_parser_test_LDADD = libshared.la libtest-runner.la $(COMPOSITOR_LIBS)
+-
+-vertex_clip_test_SOURCES =			\
+-	tests/vertex-clip-test.c		\
+-	src/vertex-clipping.c			\
+-	src/vertex-clipping.h
+-vertex_clip_test_LDADD = libtest-runner.la -lm -lrt
+-
+-libtest_client_la_SOURCES =			\
+-	tests/weston-test-client-helper.c	\
+-	tests/weston-test-client-helper.h
+-nodist_libtest_client_la_SOURCES =		\
+-	protocol/wayland-test-protocol.c	\
+-	protocol/wayland-test-client-protocol.h
+-libtest_client_la_CFLAGS = $(AM_CFLAGS) $(TEST_CLIENT_CFLAGS)
+-libtest_client_la_LIBADD = $(TEST_CLIENT_LIBS) libshared.la libtest-runner.la
+-
+-bad_buffer_weston_SOURCES = tests/bad-buffer-test.c
+-bad_buffer_weston_CFLAGS = $(AM_CFLAGS) $(TEST_CLIENT_CFLAGS)
+-bad_buffer_weston_LDADD = libtest-client.la
+-
+-keyboard_weston_SOURCES = tests/keyboard-test.c
+-keyboard_weston_CFLAGS = $(AM_CFLAGS) $(TEST_CLIENT_CFLAGS)
+-keyboard_weston_LDADD = libtest-client.la
+-
+-event_weston_SOURCES = tests/event-test.c
+-event_weston_CFLAGS = $(AM_CFLAGS) $(TEST_CLIENT_CFLAGS)
+-event_weston_LDADD = libtest-client.la
+-
+-button_weston_SOURCES = tests/button-test.c
+-button_weston_CFLAGS = $(AM_CFLAGS) $(TEST_CLIENT_CFLAGS)
+-button_weston_LDADD = libtest-client.la
+-
+-text_weston_SOURCES = tests/text-test.c
+-nodist_text_weston_SOURCES =			\
+-	protocol/text-protocol.c		\
+-	protocol/text-client-protocol.h
+-text_weston_CFLAGS = $(AM_CFLAGS) $(TEST_CLIENT_CFLAGS)
+-text_weston_LDADD = libtest-client.la
+-
+-subsurface_weston_SOURCES = tests/subsurface-test.c
+-subsurface_weston_CFLAGS = $(AM_CFLAGS) $(TEST_CLIENT_CFLAGS)
+-subsurface_weston_LDADD = libtest-client.la
+-
+-if ENABLE_EGL
+-weston_tests += buffer-count.weston
+-buffer_count_weston_SOURCES = tests/buffer-count-test.c
+-buffer_count_weston_CFLAGS = $(GCC_CFLAGS) $(EGL_TESTS_CFLAGS)
+-buffer_count_weston_LDADD = libtest-client.la $(EGL_TESTS_LIBS)
+-endif
+-
+-if ENABLE_XWAYLAND_TEST
+-weston_tests +=	xwayland-test.weston
+-xwayland_test_weston_SOURCES = tests/xwayland-test.c
+-xwayland_test_weston_CFLAGS = $(GCC_CFLAGS) $(XWAYLAND_TEST_CFLAGS)
+-xwayland_test_weston_LDADD = libtest-client.la $(XWAYLAND_TEST_LIBS)
+-endif
+-
+-matrix_test_SOURCES =				\
+-	tests/matrix-test.c			\
+-	shared/matrix.c				\
+-	shared/matrix.h
+-matrix_test_CPPFLAGS = -DUNIT_TEST
+-matrix_test_LDADD = -lm -lrt
+-
+-if BUILD_SETBACKLIGHT
+-noinst_PROGRAMS += setbacklight
+-setbacklight_SOURCES =				\
+-	tests/setbacklight.c			\
+-	src/libbacklight.c			\
+-	src/libbacklight.h
+-setbacklight_CFLAGS = $(AM_CFLAGS) $(SETBACKLIGHT_CFLAGS)
+-setbacklight_LDADD = $(SETBACKLIGHT_LIBS)
+-endif
+-
+-EXTRA_DIST += tests/weston-tests-env
+-
+ BUILT_SOURCES +=				\
+ 	protocol/wayland-test-protocol.c	\
+ 	protocol/wayland-test-server-protocol.h	\
+@@ -966,7 +811,6 @@
+ 	protocol/input-method.xml		\
+ 	protocol/workspaces.xml			\
+ 	protocol/text-cursor-position.xml	\
+-	protocol/wayland-test.xml		\
+ 	protocol/xdg-shell.xml			\
+ 	protocol/fullscreen-shell.xml		\
+ 	protocol/scaler.xml
